@@ -29,14 +29,14 @@ jobs:
       - name: Generate terraform.tfvars
         run: |
           cat > ${{ github.workspace }}/terraform/terraform.tfvars <<EOF
-region           = "ap-south-1"
-cluster_name     = "chijji-moni-cluster"
-node_type        = "t3.small"
-node_count       = 2
-node_min         = 1
-node_max         = 3
-node_group_name  = "chijji-moni-nodes"
-EOF
+          region           = "ap-south-1"
+          cluster_name     = "chijji-moni-cluster"
+          node_type        = "t3.small"
+          node_count       = 2
+          node_min         = 1
+          node_max         = 3
+          node_group_name  = "chijji-moni-nodes"
+          EOF
 
       - name: Create or skip EKS cluster
         run: |
@@ -54,16 +54,16 @@ EOF
       - name: Generate secret.yaml
         run: |
           cat > ${{ github.workspace }}/secret.yaml <<EOF
-apiVersion: v1
-kind: Secret
-metadata:
-  name: chijji-moni-secret
-type: Opaque
-data:
-  SUPABASE_URL: $(echo -n "${{ secrets.SUPABASE_URL }}" | base64 -w 0)
-  SUPABASE_SECRET_KEY: $(echo -n "${{ secrets.SUPABASE_SECRET_KEY }}" | base64 -w 0)
-  JWT_SECRET: $(echo -n "${{ secrets.JWT_SECRET }}" | base64 -w 0)
-EOF
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            name: chijji-moni-secret
+          type: Opaque
+          data:
+            SUPABASE_URL: $(echo -n "${{ secrets.SUPABASE_URL }}" | base64 -w 0)
+            SUPABASE_SECRET_KEY: $(echo -n "${{ secrets.SUPABASE_SECRET_KEY }}" | base64 -w 0)
+            JWT_SECRET: $(echo -n "${{ secrets.JWT_SECRET }}" | base64 -w 0)
+          EOF
 
       - name: Deploy to EKS
         run: |
