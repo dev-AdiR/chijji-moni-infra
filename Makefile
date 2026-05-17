@@ -13,9 +13,9 @@ deploy:
 	kubectl apply -f ./service.yaml
 
 destroy:
-	kubectl delete -f service.yaml --ignore-not-found=true || true
-	kubectl delete -f deployment.yaml --ignore-not-found=true || true
-	kubectl delete -f secret.yaml --ignore-not-found=true || true
+	kubectl delete -f service.yaml
+	kubectl delete -f deployment.yaml
+	kubectl delete -f secret.yaml
 
 # Pods
 pods:

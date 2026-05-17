@@ -10,6 +10,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -17,12 +23,60 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-south-1
 
+      - name: Generate terraform.tfvars
+        run: |
+          cat > ${{ github.workspace }}/terraform/terraform.tfvars <<EOF
+          region           = "ap-south-1"
+          cluster_name     = "chijji-moni-cluster"
+          node_type        = "t3.small"
+          node_count       = 2
+          node_min         = 1
+          node_max         = 3
+          node_group_name  = "chijji-moni-nodes"
+          EOF
+
+      - name: Check if cluster exists and create if not
+        run: |
+          echo "Workspace contents:"
+          ls ${{ github.workspace }}
+          echo "---"
+          if aws eks describe-cluster --name chijji-moni-cluster --region ap-south-1 > /dev/null 2>&1; then
+            echo "Cluster already exists, skipping creation"
+          else
+            echo "Cluster not found, creating with Terraform..."
+            cd ${{ github.workspace }}/terraform && terraform init && terraform apply -auto-approve
+          fi
+
       - name: Update kubeconfig
         run: |
           aws eks update-kubeconfig --name chijji-moni-cluster --region ap-south-1
 
+      - name: Generate secret.yaml
+        run: |
+          cat > ${{ github.workspace }}/secret.yaml <<EOF
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            name: chijji-moni-secret
+          type: Opaque
+          data:
+            SUPABASE_URL: $(echo -n "${{ secrets.SUPABASE_URL }}" | base64)
+            SUPABASE_SECRET_KEY: $(echo -n "${{ secrets.SUPABASE_SECRET_KEY }}" | base64)
+            JWT_SECRET: $(echo -n "${{ secrets.JWT_SECRET }}" | base64)
+          EOF
+
       - name: Deploy to EKS
         run: |
-          kubectl set image deployment/chijji-moni-app \
-            chijji-moni-app=adityarawat1999/chijji-moni-app:${{ github.event.client_payload.sha }}
+          kubectl apply -f ${{ github.workspace }}/secret.yaml
+          kubectl apply -f ${{ github.workspace }}/deployment.yaml
+          kubectl apply -f ${{ github.workspace }}/service.yaml
+          
+          SHA="${{ github.event.client_payload.sha }}"
+          if [ -z "$SHA" ]; then
+            echo "No SHA provided, skipping image update"
+          else
+            kubectl set image deployment/chijji-moni-app \
+              chijji-moni-app=adityarawat1999/chijji-moni-app:$SHA
+          fi
+          
           kubectl rollout status deployment/chijji-moni-app
