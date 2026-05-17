@@ -23,7 +23,7 @@ jobs:
             echo "Cluster already exists, skipping creation"
           else
             echo "Cluster not found, creating with Terraform..."
-            cd terraform && terraform init && terraform apply -auto-approve
+            cd ${{ github.workspace }}/terraform && terraform init && terraform apply -auto-approve
           fi
 
       - name: Update kubeconfig
