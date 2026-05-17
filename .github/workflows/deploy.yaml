@@ -71,12 +71,12 @@ jobs:
           kubectl apply -f ${{ github.workspace }}/deployment.yaml
           kubectl apply -f ${{ github.workspace }}/service.yaml
 
-          SHA="${{ github.event.client_payload.sha }}"
-          if [ -z "$SHA" ]; then
-            echo "No SHA provided, skipping image update"
+          VERSION="${{ github.event.client_payload.version }}"
+          if [ -z "$VERSION" ]; then
+            echo "No VERSION provided, skipping image update"
           else
             kubectl set image deployment/chijji-moni-app \
-              chijji-moni-app=adityarawat1999/chijji-moni-app:$SHA
+              chijji-moni-app=adityarawat1999/chijji-moni-app:$VERSION
           fi
 
           kubectl rollout status deployment/chijji-moni-app
