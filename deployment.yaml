@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: chijji-moni-app
-          image: adityarawat1999/chijji-moni-app:1.0.2
+          image: adityarawat1999/chijji-moni-app:latest
           ports:
             - containerPort: 8080
           envFrom:
