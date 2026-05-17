@@ -1,20 +1,21 @@
 # Cluster Management
 create-cluster:
-	eksctl create cluster --name chijji-moni-cluster --region ap-south-1 --nodegroup-name chijji-moni-nodes --node-type t3.small --nodes 2 --nodes-min 1 --nodes-max 3 --managed
+	cd terraform && terraform apply -auto-approve
+	aws eks update-kubeconfig --name chijji-moni-cluster --region ap-south-1
 
 delete-cluster:
-	eksctl delete cluster --name chijji-moni-cluster --region ap-south-1
+	cd terraform && terraform destroy -auto-approve
 
 # Kubernetes
 deploy:
-	kubectl apply -f ./app/secret.yaml
-	kubectl apply -f ./app/deployment.yaml
-	kubectl apply -f ./app/service.yaml
+	kubectl apply -f ./secret.yaml
+	kubectl apply -f ./deployment.yaml
+	kubectl apply -f ./service.yaml
 
 destroy:
-	kubectl delete -f ./app/service.yaml
-	kubectl delete -f ./app/deployment.yaml
-	kubectl delete -f ./app/secret.yaml
+	kubectl delete -f service.yaml --ignore-not-found=true || true
+	kubectl delete -f deployment.yaml --ignore-not-found=true || true
+	kubectl delete -f secret.yaml --ignore-not-found=true || true
 
 # Pods
 pods:

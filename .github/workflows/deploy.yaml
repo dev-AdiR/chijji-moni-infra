@@ -16,6 +16,15 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-south-1
+      
+      - name: Check if cluster exists and create if not
+        run: |
+          if aws eks describe-cluster --name chijji-moni-cluster --region ap-south-1 > /dev/null 2>&1; then
+            echo "Cluster already exists, skipping creation"
+          else
+            echo "Cluster not found, creating with Terraform..."
+            cd terraform && terraform init && terraform apply -auto-approve
+          fi
 
       - name: Update kubeconfig
         run: |
