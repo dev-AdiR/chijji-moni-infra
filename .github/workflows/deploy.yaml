@@ -64,9 +64,19 @@ jobs:
             SUPABASE_SECRET_KEY: $(echo -n "${{ secrets.SUPABASE_SECRET_KEY }}" | base64)
             JWT_SECRET: $(echo -n "${{ secrets.JWT_SECRET }}" | base64)
           EOF
-          
+
       - name: Deploy to EKS
         run: |
-          kubectl set image deployment/chijji-moni-app \
-            chijji-moni-app=adityarawat1999/chijji-moni-app:${{ github.event.client_payload.sha }}
+          kubectl apply -f ${{ github.workspace }}/secret.yaml
+          kubectl apply -f ${{ github.workspace }}/deployment.yaml
+          kubectl apply -f ${{ github.workspace }}/service.yaml
+          
+          SHA="${{ github.event.client_payload.sha }}"
+          if [ -z "$SHA" ]; then
+            echo "No SHA provided, skipping image update"
+          else
+            kubectl set image deployment/chijji-moni-app \
+              chijji-moni-app=adityarawat1999/chijji-moni-app:$SHA
+          fi
+          
           kubectl rollout status deployment/chijji-moni-app
