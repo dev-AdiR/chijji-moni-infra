@@ -19,6 +19,9 @@ jobs:
       
       - name: Check if cluster exists and create if not
         run: |
+          echo "Workspace contents:"
+          ls ${{ github.workspace }}
+          echo "---"
           if aws eks describe-cluster --name chijji-moni-cluster --region ap-south-1 > /dev/null 2>&1; then
             echo "Cluster already exists, skipping creation"
           else
